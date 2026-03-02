@@ -1,65 +1,126 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState } from "react";
+import { useSimulation } from "@/lib/useSimulation";
+import ParameterPanel from "@/components/ParameterPanel";
+import DashboardSummary from "@/components/DashboardSummary";
+import ChartMonthly from "@/components/ChartMonthly";
+import ChartChannelPie from "@/components/ChartChannelPie";
+import ChartWeeklyPace from "@/components/ChartWeeklyPace";
+import MonthlyTable from "@/components/MonthlyTable";
+import ScenarioManager from "@/components/ScenarioManager";
+import ScenarioComparison from "@/components/ScenarioComparison";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Home() {
+  const { params, setParams, setParamsImmediate, result, scenarios, saveScenario, deleteScenario } =
+    useSimulation();
+
+  const [showComparison, setShowComparison] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="min-h-screen bg-[var(--background)]">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--card-bg)]/80 backdrop-blur-sm">
+        <div className="max-w-[1600px] mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              className="lg:hidden p-1.5 rounded-lg border border-[var(--border)] text-[var(--foreground)]"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <h1 className="text-base font-bold text-[var(--foreground)]">
+              D2C 売上シミュレーター
+            </h1>
+            <span className="hidden sm:inline text-xs text-[var(--muted)] bg-[var(--border)] px-2 py-0.5 rounded-full">
+              {params.periodMonths}ヶ月シミュレーション
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {scenarios.length > 0 && (
+              <button
+                onClick={() => setShowComparison(!showComparison)}
+                className={`text-xs px-3 py-1.5 rounded-lg border transition-colors font-medium ${
+                  showComparison
+                    ? "bg-indigo-600 border-indigo-600 text-white"
+                    : "bg-[var(--card-bg)] border-[var(--border)] text-[var(--foreground)] hover:border-indigo-400"
+                }`}
+              >
+                比較 ({scenarios.length})
+              </button>
+            )}
+            <ThemeToggle />
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </header>
+
+      <div className="max-w-[1600px] mx-auto flex relative">
+        {/* Sidebar - mobile overlay */}
+        {sidebarOpen && (
+          <div
+            className="lg:hidden fixed inset-0 z-40 bg-black/50"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Left Panel - Parameter Controls */}
+        <aside
+          className={`
+            fixed lg:sticky top-14 left-0 z-40 lg:z-auto
+            w-[340px] lg:w-[380px] h-[calc(100vh-3.5rem)] overflow-y-auto
+            border-r border-[var(--border)] bg-[var(--card-bg)]
+            transform transition-transform duration-300
+            ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          `}
+        >
+          <ParameterPanel
+            params={params}
+            onChange={setParams}
+            onChangeImmediate={setParamsImmediate}
+          />
+        </aside>
+
+        {/* Main Dashboard */}
+        <main className="flex-1 min-w-0 p-4 space-y-4 lg:ml-0">
+          {/* Summary Cards */}
+          <DashboardSummary result={result} params={params} />
+
+          {/* Scenario comparison view */}
+          {showComparison && scenarios.length > 0 && (
+            <ScenarioComparison scenarios={scenarios} />
+          )}
+
+          {/* Charts row */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <ChartMonthly data={result.monthlyData} />
+            <div className="space-y-4">
+              <ChartWeeklyPace
+                data={result.monthlyData}
+                maxProductionCap={result.maxProductionCap}
+              />
+              <ChartChannelPie result={result} />
+            </div>
+          </div>
+
+          {/* Monthly Table */}
+          <MonthlyTable data={result.monthlyData} />
+
+          {/* Scenario Manager */}
+          <ScenarioManager
+            scenarios={scenarios}
+            onSave={saveScenario}
+            onDelete={deleteScenario}
+            canSave={scenarios.length < 3}
+          />
+        </main>
+      </div>
     </div>
   );
 }
