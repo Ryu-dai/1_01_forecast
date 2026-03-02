@@ -46,6 +46,8 @@ export default function DashboardSummary({ result, params }: Props) {
     totalRevenue,
     totalProfit,
     capacityShortfall,
+    effectiveDemandMonthly,
+    demandLimited,
   } = result;
 
   const margin = params.price - params.cogs;
@@ -57,8 +59,12 @@ export default function DashboardSummary({ result, params }: Props) {
     100;
   const effectiveMargin = margin * avgMarginMultiplier;
 
+  const gridCols = effectiveDemandMonthly > 0
+    ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-7"
+    : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6";
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div className={`grid ${gridCols} gap-3`}>
       <Card
         label="必要総販売数"
         value={requiredUnits.toLocaleString()}
@@ -92,6 +98,14 @@ export default function DashboardSummary({ result, params }: Props) {
         sub={effectiveMargin > 0 ? `粗利/個: ¥${Math.round(effectiveMargin).toLocaleString()}` : "設定を確認"}
         alert={achievabilityPct < 80}
       />
+      {effectiveDemandMonthly > 0 && (
+        <Card
+          label="需要見込み/月"
+          value={effectiveDemandMonthly.toLocaleString()}
+          sub={`個 ${demandLimited ? "⚠ 需要が制約" : "✓ 需要充足"}`}
+          alert={demandLimited}
+        />
+      )}
     </div>
   );
 }

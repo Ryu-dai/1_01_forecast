@@ -21,6 +21,9 @@ export const DEFAULT_PARAMS: SimParams = {
     ec: 0.9,
     wholesale: 0.6,
   },
+  baseDemandMonthly: 0,
+  demandReferencePrice: 5000,
+  priceElasticity: -1.0,
 };
 
 export const PARAM_RANGES = {
@@ -31,6 +34,8 @@ export const PARAM_RANGES = {
   teamSize: { min: 1, max: 20, step: 1 },
   productionPerPerson: { min: 10, max: 500, step: 10 },
   weeklyProductionCap: { min: 10, max: 2000, step: 10 },
+  baseDemandMonthly: { min: 10, max: 5000, step: 10 },
+  priceElasticity: { min: -3.0, max: -0.1, step: 0.1 },
 };
 
 export const CHANNEL_LABELS: Record<string, string> = {

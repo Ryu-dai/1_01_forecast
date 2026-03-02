@@ -185,6 +185,73 @@ export default function ParameterPanel({ params, onChange, onChangeImmediate }: 
           onChange={(ch) => onChangeImmediate((p) => ({ ...p, channels: ch }))}
         />
       </section>
+
+      {/* Price Elasticity */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--muted)]">
+            価格弾力性
+          </h3>
+          <button
+            onClick={() =>
+              onChangeImmediate((p) =>
+                p.baseDemandMonthly > 0
+                  ? { ...p, baseDemandMonthly: 0 }
+                  : { ...p, baseDemandMonthly: 300, demandReferencePrice: p.price }
+              )
+            }
+            className={`text-xs px-2 py-0.5 rounded border transition-colors ${
+              params.baseDemandMonthly > 0
+                ? "bg-indigo-600 border-indigo-600 text-white"
+                : "bg-[var(--card-bg)] border-[var(--border)] text-[var(--muted)] hover:border-indigo-400"
+            }`}
+          >
+            {params.baseDemandMonthly > 0 ? "有効" : "無効"}
+          </button>
+        </div>
+
+        {params.baseDemandMonthly > 0 && (
+          <div className="space-y-4">
+            <SliderInput
+              label="基準需要（月間）"
+              value={params.baseDemandMonthly}
+              min={PARAM_RANGES.baseDemandMonthly.min}
+              max={PARAM_RANGES.baseDemandMonthly.max}
+              step={PARAM_RANGES.baseDemandMonthly.step}
+              unit="個/月"
+              onChange={(v) =>
+                onChange((p) => ({ ...p, baseDemandMonthly: v, demandReferencePrice: p.price }))
+              }
+              onChangeImmediate={(v) =>
+                onChangeImmediate((p) => ({ ...p, baseDemandMonthly: v, demandReferencePrice: p.price }))
+              }
+            />
+            <SliderInput
+              label="弾力性係数"
+              value={params.priceElasticity}
+              min={PARAM_RANGES.priceElasticity.min}
+              max={PARAM_RANGES.priceElasticity.max}
+              step={PARAM_RANGES.priceElasticity.step}
+              format={(v) => v.toFixed(1)}
+              onChange={(v) => onChange((p) => ({ ...p, priceElasticity: v }))}
+              onChangeImmediate={(v) => onChangeImmediate((p) => ({ ...p, priceElasticity: v }))}
+            />
+            <div className="text-xs text-[var(--muted)] bg-[var(--card-bg)] rounded-lg px-3 py-2 border border-[var(--border)] space-y-0.5">
+              <div>
+                基準価格: <span className="text-[var(--foreground)] font-medium">¥{params.demandReferencePrice.toLocaleString()}</span> で月間 <span className="text-[var(--foreground)] font-medium">{params.baseDemandMonthly}個</span> と想定
+              </div>
+              <div className="text-indigo-400">
+                ▸ 現在価格 ¥{params.price.toLocaleString()} での需要は計算済み（サマリーに表示）
+              </div>
+            </div>
+          </div>
+        )}
+        {params.baseDemandMonthly === 0 && (
+          <p className="text-xs text-[var(--muted)]">
+            有効にすると、価格変更による需要変動を考慮した達成確度を算出します。
+          </p>
+        )}
+      </section>
     </div>
   );
 }

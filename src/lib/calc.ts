@@ -14,6 +14,9 @@ export function runSimulation(params: SimParams): SimResult {
     awarenessCurve,
     channels,
     channelMargins,
+    baseDemandMonthly,
+    demandReferencePrice,
+    priceElasticity,
   } = params;
 
   const baseMargin = price - cogs;
@@ -41,6 +44,13 @@ export function runSimulation(params: SimParams): SimResult {
   const monthlyTeamCap = teamSize * productionPerPerson;
   const weeklyTeamCap = monthlyTeamCap / WEEKS_PER_MONTH;
   const effectiveWeeklyCap = Math.min(weeklyProductionCap, weeklyTeamCap);
+
+  // Price elasticity of demand
+  const elasticityEnabled = baseDemandMonthly > 0 && demandReferencePrice > 0;
+  const effectiveDemandMonthly = elasticityEnabled
+    ? baseDemandMonthly * Math.pow(price / demandReferencePrice, priceElasticity)
+    : 0;
+  const totalMarketDemand = elasticityEnabled ? effectiveDemandMonthly * periodMonths : Infinity;
 
   // Awareness weights
   const weights = getAwarenessWeights(awarenessCurve, periodMonths);
@@ -92,14 +102,16 @@ export function runSimulation(params: SimParams): SimResult {
   const totalRevenue = monthlyData.reduce((a, b) => a + b.revenue, 0);
   const totalProfit = monthlyData.reduce((a, b) => a + b.profit, 0);
 
-  // Max possible profit (if capped by manufacturing)
-  const maxUnitsPerPeriod = effectiveWeeklyCap * totalWeeks;
+  // Max possible profit (capped by manufacturing and/or market demand)
+  const maxUnitsFromProduction = effectiveWeeklyCap * totalWeeks;
+  const maxUnitsPerPeriod = Math.min(maxUnitsFromProduction, totalMarketDemand);
   const maxPossibleProfit = maxUnitsPerPeriod * effectiveMargin;
   const achievabilityPct = targetProfit > 0
     ? Math.min(100, Math.round((maxPossibleProfit / targetProfit) * 100))
     : 100;
 
   const capacityShortfall = monthlyData.some((m) => m.capacityExceeded);
+  const demandLimited = elasticityEnabled && totalMarketDemand < maxUnitsFromProduction;
 
   return {
     monthlyData,
@@ -112,5 +124,7 @@ export function runSimulation(params: SimParams): SimResult {
     maxProductionCap,
     achievabilityPct,
     capacityShortfall,
+    effectiveDemandMonthly: elasticityEnabled ? Math.round(effectiveDemandMonthly) : 0,
+    demandLimited,
   };
 }

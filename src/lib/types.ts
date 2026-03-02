@@ -31,6 +31,11 @@ export interface SimParams {
 
   // Channel-specific margins (multiplier on base margin)
   channelMargins: ChannelDistribution;
+
+  // Price elasticity of demand (optional; baseDemandMonthly=0 means disabled)
+  baseDemandMonthly: number;      // expected units/month at demandReferencePrice; 0 = disabled
+  demandReferencePrice: number;   // price at which baseDemandMonthly was calibrated
+  priceElasticity: number;        // e.g. -1.0 (negative: higher price → lower demand)
 }
 
 export interface MonthlyData {
@@ -57,6 +62,8 @@ export interface SimResult {
   maxProductionCap: number;    // weekly cap from team
   achievabilityPct: number;    // (max possible profit / target profit) * 100, capped at 100
   capacityShortfall: boolean;  // any month exceeds cap
+  effectiveDemandMonthly: number;  // adjusted demand at current price; 0 if elasticity disabled
+  demandLimited: boolean;          // true if market demand (not production) is the binding constraint
 }
 
 export interface Scenario {
