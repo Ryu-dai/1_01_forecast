@@ -29,18 +29,39 @@
 
 ## セットアップ
 
+### 必要な環境
+
+| ツール | バージョン | 確認方法 |
+|---|---|---|
+| Node.js | **v20 推奨** | `node -v` |
+| npm | v10+ | `npm -v` |
+
+> **⚠️ Node v22 の注意**: `npx tsc` や `./node_modules/.bin/tsc` がシンボリックリンクの解決バグで動作しません。このプロジェクトでは型チェックに `node -e "require('./node_modules/typescript/lib/tsc.js')"` を使用してください。
+
+### インストールと起動
+
 ```bash
-npm install
+git clone https://github.com/Ryu-dai/1_01_forecast
+cd 1_01_forecast
+npm install   # package-lock.json により全員が同一バージョンを取得
 npm run dev
 ```
 
 ブラウザで [http://localhost:3000](http://localhost:3000) を開いてください。
+
+> **再現性を重視する場合**（CI環境など）は `npm ci` を使うと lock ファイルを厳密に適用できます。
 
 ### ビルド
 
 ```bash
 npm run build
 npm start
+```
+
+### 型チェック（ビルドなし）
+
+```bash
+node -e "require('./node_modules/typescript/lib/tsc.js')"
 ```
 
 ---
